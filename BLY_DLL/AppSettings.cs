@@ -19,6 +19,7 @@ namespace BLY_DLL
             Odbc = System.Configuration.ConfigurationManager.AppSettings["Odbc"];
             Username = System.Configuration.ConfigurationManager.AppSettings["Username"];
             Password = System.Configuration.ConfigurationManager.AppSettings["Password"];
+            //AppServer = "http://cd167408appp/OnBaseApp/service.asmx";
             //AppServer = "http://ecmhml.unimedcbs.com.br/appserver/Service.asmx";
             //Odbc = "Onbase";
             //Username = "manager";

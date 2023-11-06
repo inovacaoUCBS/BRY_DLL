@@ -8,16 +8,16 @@ namespace UCBS.BRY.Client
 {
     public class Config_Assinatura
     {
-        public float x {get;set;}
-        public float y { get; set; }
+        public string x {get;set;}
+        public string y { get; set; }
         public string paginas { get; set; }
 
     }
 
     public class Config_Rubrica
     {
-        public float x { get; set; }
-        public float y { get; set; }
+        public string x { get; set; }
+        public string y { get; set; }
         public string paginas { get; set; }
 
     }

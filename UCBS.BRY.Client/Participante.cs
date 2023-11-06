@@ -33,7 +33,7 @@ namespace UCBS.BRY.Client
         private void CriaIniciais()
         {
             string primeira_letra = nome.Split(' ')[0].ToString().Substring(0, 1);
-            string ultima_letra = nome.Split(' ')[0].ToString().Substring(1, 2);
+            string ultima_letra = nome.Split(' ')[0].ToString().Substring(1, 1);
 
             if (nome.Split(' ').Length > 1)
             {

@@ -298,7 +298,7 @@ namespace UCBS.BRY.Client
             requestContent.Add(new StringContent(medico.ip), "ip");
             requestContent.Add(new StringContent(medico.geolocation), "geolocation");
             requestContent.Add(new StringContent("password"), "authentication");
-            requestContent.Add(new StringContent("Documento Assinado via e-mail"), "trail");
+            requestContent.Add(new StringContent(medico.trail), "trail");
             requestContent.Add(new StringContent(jsonAssinatura), "signature");
             requestContent.Add(new StringContent(jsonInicial), "initials");
             requestContent.Add(streamContentDocument, "document", "document.pdf");
@@ -395,7 +395,7 @@ namespace UCBS.BRY.Client
             requestContent.Add(new StringContent(intermediario.ip), "ip");
             requestContent.Add(new StringContent(intermediario.geolocation), "geolocation");
             requestContent.Add(new StringContent("link enviado via E-mail"), "authentication");
-            requestContent.Add(new StringContent("Documento Assinado via e-mail"), "trail");
+            requestContent.Add(new StringContent(intermediario.trail), "trail");
             requestContent.Add(new StringContent(jsonAssinatura), "signature");
             requestContent.Add(new StringContent(jsonInicial), "initials");
             requestContent.Add(streamContentDocument, "document", "document.pdf");
@@ -613,7 +613,7 @@ namespace UCBS.BRY.Client
             requestContent.Add(new StringContent(participante.ip), "ip");
             requestContent.Add(new StringContent(participante.geolocation), "geolocation");
             requestContent.Add(new StringContent("password"), "authentication");
-            requestContent.Add(new StringContent("Documento Assinado via e-mail"), "trail");
+            requestContent.Add(new StringContent(participante.trail), "trail");
             requestContent.Add(new StringContent(jsonAssinatura), "signature");
             requestContent.Add(new StringContent(jsonInicial), "initials");
             requestContent.Add(new StringContent(documento.evento), "event");
@@ -877,8 +877,8 @@ namespace UCBS.BRY.Client
                     {{
                         ""config"":[
                                         {{
-                                            ""x"":{3},
-			                                ""y"":{2}, 
+                                            ""x"":{2},
+			                                ""y"":{3}, 
 			                                ""scale"":0.5,
 			                                ""pages"": ""{1}""
                                         }}
@@ -892,8 +892,8 @@ namespace UCBS.BRY.Client
                     {{
 	                    ""config"":[
                             {{
-                                ""x"":{3},
-			                    ""y"":{2},
+                                ""x"":{2},
+			                    ""y"":{3},
 			                    ""pages"": ""{1}"",
 			                    ""scale"": 0.5
                             }}
@@ -930,14 +930,14 @@ namespace UCBS.BRY.Client
             documento.DocumentStream.Flush();
             documento.DocumentStream.Seek(0, SeekOrigin.Begin);
             */
-            var fileStream = documento.DocumentStream;
-            var streamContentDocument = new StreamContent(fileStream);
+            var fileStream = documento.DocumentData;
+            var streamContentDocument = new StreamContent(new MemoryStream(fileStream));
 
             requestContent.Add(new StringContent(participante.nome), "name");
             requestContent.Add(new StringContent(participante.email), "email");
             requestContent.Add(new StringContent(participante.cpf), "cpf");
             requestContent.Add(new StringContent("password"), "authentication");
-            requestContent.Add(new StringContent("Documento Assinado via e-mail"), "trail");
+            requestContent.Add(new StringContent(participante.trail), "trail");
             requestContent.Add(new StringContent(jsonAssinatura), "signature");
             requestContent.Add(new StringContent(jsonInicial), "initials");
             requestContent.Add(streamContentDocument, "document", "document.pdf");
