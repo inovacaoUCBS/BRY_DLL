@@ -18,15 +18,12 @@ namespace BLY_DLL
         static int Main(string[] args)
         {
             #region Declaração de Variaveis
-            participante = new Participante();
             OnBase onbase = new OnBase();
             onbase.GetApplication();
             Application app = onbase.app;
-            bool resposta = true;
             Request request = new Request();
             request.GetToken();
-            Console.Write(Settings.Token);
-            Document doc = onbase.GetDocumentByiD(14179445);
+            Document doc = onbase.GetDocumentByiD(14827239);
 
             string NomeDocumento = doc.Name;
             NomeDocumento = NomeDocumento.Replace("'", " ");
@@ -36,10 +33,51 @@ namespace BLY_DLL
             Rendition rendition = doc.DefaultRenditionOfLatestRevision;
             NativeDataProvider ndp = app.Core.Retrieval.Native;
 
+            documento.evento = "64AE6C76-224C-4569-BDF4-301C512338A5";
+
             #endregion
 
-            
-            
+            #region Criar assinatura e Rublica
+            using (PageData pageData = ndp.GetDocument(rendition))
+            {
+                app.Diagnostics.Write("Usando Pagedatta");
+                using (Stream stream = pageData.Stream)
+                {
+                    documento.DocumentStream = new MemoryStream();
+                    documento.comDLP = false;
+                    stream.CopyTo(documento.DocumentStream);
+                    documento.DocumentStream.Flush();
+                    documento.DocumentStream.Seek(0, SeekOrigin.Begin);
+                    if (rendition.NumberOfPages > 15)
+                    {
+                        documento.comDLP = true;
+                    }
+                }
+            }
+            #endregion
+
+            #region Salva Documento e recupera Novamente
+            File.WriteAllBytes(@"C:\Temp\" + NomeDocumento + ".pdf", documento.DocumentStream.ToArray());
+            BryResponse response = new BryResponse();
+            string filePath = "C:\\Temp\\" + NomeDocumento + ".pdf";
+            documento.DocumentData = File.ReadAllBytes(filePath);
+            #endregion
+
+            #region Chama integração para recuperar documento assinado sem assinar novamente
+            response = request.RecuperarDocumentoAssinado(documento).GetAwaiter().GetResult();
+            if (response != null)
+            {
+                if (response.Status == "OK")
+                {
+                    Console.WriteLine("OK");
+                    File.WriteAllBytes(@"C:\Temp\" + NomeDocumento + ".pdf", Convert.FromBase64String(response.JsonResponse));
+                }
+            }
+
+            #endregion
+
+            onbase.Disconnect();
+
             return 1;
         }
 

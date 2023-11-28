@@ -1006,5 +1006,64 @@ namespace UCBS.BRY.Client
             }
             return bryResponse;
         }
+
+        public async Task<BryResponse> RecuperarDocumentoAssinado(Documento documento)
+        {
+            #region Json de resposta
+            string jsonOutput = String.Format(@"
+            {{
+	            ""format"":""base64"",
+                ""language"":""pt-br"",
+	            ""includes"": 
+                [
+                        {{
+                            ""type"": ""document""
+                        }},
+		                {{
+                            ""type"":""report"",
+			                ""template"":""ES-002"",
+			                ""qrCode"":""teste"",
+			                ""title"": ""Documento de Padronização: Representação Assinatura Eletrônica"",
+			                ""key"": ""chave indicada pelo cliente""
+                        }}
+	            ]
+            }}");
+            #endregion
+
+            BryResponse bryResponse = new BryResponse();
+            var requestContent = new MultipartFormDataContent();
+
+            var fileStream = documento.DocumentData;
+            var streamContentDocument = new StreamContent(new MemoryStream(fileStream));
+
+
+            requestContent.Add(streamContentDocument, "document", "document.pdf");
+            requestContent.Add(new StringContent(documento.evento), "event");
+            requestContent.Add(new StringContent(jsonOutput), "output");
+
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/form-data"));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Settings.Token.access_token);
+
+            var response = await client.PostAsync(Settings.BASE_URL_IMAGE + "/api/v5/report", requestContent).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                bryResponse.JsonResponse = response.Content.ReadAsStringAsync().Result;
+                bryResponse.Status = response.StatusCode.ToString();
+                bryResponse.ReturnType = ReturnType.BASE64;
+
+                bryResponse.JsonResponse = bryResponse.JsonResponse.Replace("[\"", "");
+                bryResponse.JsonResponse = bryResponse.JsonResponse.Replace("\"]", "");
+            }
+            else
+            {
+                bryResponse.JsonResponse = response.Content.ReadAsStringAsync().Result;
+                bryResponse.Status = response.StatusCode.ToString();
+                bryResponse.Message = response.Content.ReadAsStringAsync().Result;
+            }
+            byte[] bytes = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+
+            return bryResponse;
+        }
     }
 }
