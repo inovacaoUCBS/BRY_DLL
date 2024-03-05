@@ -23,7 +23,7 @@ namespace BLY_DLL
             Application app = onbase.app;
             Request request = new Request();
             request.GetToken();
-            Document doc = onbase.GetDocumentByiD(14827239);
+            Document doc = onbase.GetDocumentByiD(15581122);
 
             string NomeDocumento = doc.Name;
             NomeDocumento = NomeDocumento.Replace("'", " ");
@@ -33,7 +33,7 @@ namespace BLY_DLL
             Rendition rendition = doc.DefaultRenditionOfLatestRevision;
             NativeDataProvider ndp = app.Core.Retrieval.Native;
 
-            documento.evento = "64AE6C76-224C-4569-BDF4-301C512338A5";
+            documento.evento = "79F2568C-BADC-44B3-8ED3-597A96D90407";
 
             #endregion
 
@@ -62,12 +62,12 @@ namespace BLY_DLL
             string filePath = "C:\\Temp\\" + NomeDocumento + ".pdf";
             documento.DocumentData = File.ReadAllBytes(filePath);
             #endregion
-
+            onbase.Disconnect();
             #region Chama integração para recuperar documento assinado sem assinar novamente
             response = request.RecuperarDocumentoAssinado(documento).GetAwaiter().GetResult();
             if (response != null)
             {
-                if (response.Status == "OK")
+              if (response.Status == "OK")
                 {
                     Console.WriteLine("OK");
                     File.WriteAllBytes(@"C:\Temp\" + NomeDocumento + ".pdf", Convert.FromBase64String(response.JsonResponse));
@@ -76,7 +76,7 @@ namespace BLY_DLL
 
             #endregion
 
-            onbase.Disconnect();
+            
 
             return 1;
         }
