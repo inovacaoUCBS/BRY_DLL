@@ -22,22 +22,22 @@ namespace BLY_DLL
             onbase.GetApplication();
             Application app = onbase.app;
             Request request = new Request();
-            request.GetToken();
-            Document doc = onbase.GetDocumentByiD(15581122);
+            Settings.IsProduct = true;
+
+            Document doc = onbase.GetDocumentByiD(19143734);
 
             string NomeDocumento = doc.Name;
             NomeDocumento = NomeDocumento.Replace("'", " ");
             NomeDocumento = NomeDocumento.Replace("/", " ");
             NomeDocumento = NomeDocumento.Replace("\\", " ");
+            NomeDocumento = NomeDocumento.Replace(":", " -");
 
             Rendition rendition = doc.DefaultRenditionOfLatestRevision;
             NativeDataProvider ndp = app.Core.Retrieval.Native;
 
-            documento.evento = "79F2568C-BADC-44B3-8ED3-597A96D90407";
-
             #endregion
-
-            #region Criar assinatura e Rublica
+            
+            #region Captura documento a ser assinado
             using (PageData pageData = ndp.GetDocument(rendition))
             {
                 app.Diagnostics.Write("Usando Pagedatta");
@@ -56,28 +56,78 @@ namespace BLY_DLL
             }
             #endregion
 
-            #region Salva Documento e recupera Novamente
-            File.WriteAllBytes(@"C:\Temp\" + NomeDocumento + ".pdf", documento.DocumentStream.ToArray());
-            BryResponse response = new BryResponse();
-            string filePath = "C:\\Temp\\" + NomeDocumento + ".pdf";
-            documento.DocumentData = File.ReadAllBytes(filePath);
-            #endregion
-            onbase.Disconnect();
-            #region Chama integração para recuperar documento assinado sem assinar novamente
-            response = request.RecuperarDocumentoAssinado(documento).GetAwaiter().GetResult();
-            if (response != null)
+            #region Captura Evento do documento
+            foreach (KeywordRecord KeyRec in doc.KeywordRecords)
             {
-              if (response.Status == "OK")
+                foreach (Keyword key in KeyRec.Keywords)
                 {
-                    Console.WriteLine("OK");
-                    File.WriteAllBytes(@"C:\Temp\" + NomeDocumento + ".pdf", Convert.FromBase64String(response.JsonResponse));
+                    switch (key.KeywordType.Name)
+                    {
+                        case "EQ - Evento BRY":
+                            documento.evento = key.Value.ToString();
+                            break;
+                    }
+                }
+            }
+            #endregion
+
+            #region Cria assinatura e rublica
+            Participante participante = new Participante();
+            participante = new Participante("FERNANDA CANTUARIO LINHARES", "", TIPOPARTICIPANTE.INTERMEDIARIO);
+            participante.email = "FERNANDA.LINHARES@UNIMEDTERESINA.COM.BR";
+            participante.cpf = "005.171.363-25";
+            participante.ip = "179.189.114.58";
+            participante.geolocation = "-4.8171,-43.4207";
+
+            participante.trail = "Documento assinado via E-mail";
+            #endregion
+
+            request.GetToken(); 
+            request.CriaAssinatura(participante);
+            request.CriaRublica(participante);
+
+            #region Salva e recupera o documento Novamente
+            string NomeArquivo = doc.Name;
+            NomeArquivo = NomeArquivo.Replace("'", " ");
+            NomeArquivo = NomeArquivo.Replace("/", " ");
+            NomeArquivo = NomeArquivo.Replace("\\", " ");
+            NomeArquivo = NomeArquivo.Replace(":", " ");
+
+            string filePath = @"C:\Temp\AssinaturaDocumentos\" + NomeArquivo + ".pdf";
+            File.WriteAllBytes(filePath, documento.DocumentStream.ToArray());
+            documento.DocumentData = File.ReadAllBytes(filePath);
+
+            #endregion
+
+            BryResponse response = request.AdicionaAssinatura(participante, documento, output: true).GetAwaiter().GetResult();
+
+            if (response.Status == "OK")
+            {
+                if (response.ReturnType == ReturnType.BASE64)
+                {
+                    BryEventoResponse eventResponse = JsonConvert.DeserializeObject<BryEventoResponse>(response.JsonResponse);
+                    if (eventResponse != null && !string.IsNullOrEmpty(eventResponse.Evento))
+                    {
+                        File.WriteAllBytes(filePath, Convert.FromBase64String(eventResponse.Evento));
+                        CreateNewRevision(app, doc, filePath);
+                    }
                 }
             }
 
+            #region Chama integração para recuperar documento assinado sem assinar novamente
+            //BryResponse response = request.RecuperarDocumentoAssinado(documento).GetAwaiter().GetResult();
+            //if (response != null)
+            //{
+            //    if (response.Status == "OK")
+            //    {
+            //        File.WriteAllBytes(filePath, Convert.FromBase64String(response.JsonResponse));
+            ////        //CreateNewRevision(app, doc, filePath);
+            //    }
+            //}
             #endregion
 
-            
 
+            onbase.Disconnect();
             return 1;
         }
 
@@ -132,8 +182,10 @@ namespace BLY_DLL
             StoreRevisionProperties storeRevisionProperties = storage.CreateStoreRevisionProperties(currentDoc, fileType);
 
             storeRevisionProperties.Comment = "Documento assinado pela BRY";
-            List<string> listDocument = new List<string>();
-            listDocument.Add(filepath);
+            List<string> listDocument = new List<string>
+            {
+                filepath
+            };
             Document newDocument = storage.StoreNewRevision(listDocument, storeRevisionProperties);
         }
         #endregion

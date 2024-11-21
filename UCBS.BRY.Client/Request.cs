@@ -4,8 +4,8 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Newtonsoft.Json;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace UCBS.BRY.Client
 {
@@ -16,10 +16,20 @@ namespace UCBS.BRY.Client
         public string jsonMontado { get; set; }
         public void GetToken()
         {
-            var parametro = new Dictionary<string, string>();
-            parametro.Add("grant_type", "client_credentials");
-            parametro.Add("client_id", "5ee6c821-48ea-41e1-8a58-e23decc2d8d6");
-            parametro.Add("client_secret", "+WILHQ/52upJiNinmkMamh7ZrsqwM7hACRl9Li1J2EhIlVzw/2UVRQ==");
+            var parametro = new Dictionary<string, string>
+            {
+                { "grant_type", "client_credentials" }
+            };
+            if (Settings.IsProduct)
+            {
+                parametro.Add("client_id", "5ee6c821-48ea-41e1-8a58-e23decc2d8d6");
+                parametro.Add("client_secret", "+WILHQ/52upJiNinmkMamh7ZrsqwM7hACRl9Li1J2EhIlVzw/2UVRQ==");
+            }
+            else
+            {
+                parametro.Add("client_id", "863b516f-c370-403d-8dda-f211c69cb33c");
+                parametro.Add("client_secret", "3Oy3U56+oK2at5XGqsrzFrC7zGMPkSREdqtvceiLaukHMgDfo/UdAw==");
+            }
 
             using (HttpClient request = new HttpClient())
             {
@@ -307,7 +317,7 @@ namespace UCBS.BRY.Client
             request.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/form-data"));
             request.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Settings.Token.access_token);
 
-            var response = await request.PostAsync((Settings.BASE_URL_IMAGE + "/api/v5/sign"), requestContent).ConfigureAwait(false);
+            var response = await request.PostAsync((Settings.BASE_URL_IMAGE + "/api/unimed/v5/sign"), requestContent).ConfigureAwait(false);
             bryResponse.StatusCode = response.StatusCode;
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -454,6 +464,14 @@ namespace UCBS.BRY.Client
 
             return ParticipantesValidos;
         }
+
+        /// <summary>
+        /// Rota de assinatura da Entrevista Qualificada.
+        /// </summary>
+        /// <param name="participante">Objeto Participante com as configurações de assinatura</param>
+        /// <param name="documento">Documento a ser assinado</param>
+        /// <param name="output">parametro que aponta se deve ou não retornar o documento assinado, por padrão é false</param>
+        /// <returns></returns>
         public async Task<BryResponse> AdicionaAssinatura(Participante participante, Documento documento, bool output = false)
         {
             BryResponse bryResponse = new BryResponse();
@@ -632,7 +650,8 @@ namespace UCBS.BRY.Client
                 request.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/form-data"));
                 request.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Settings.Token.access_token);
 
-                using (var response = await request.PostAsync((Settings.BASE_URL_IMAGE + "/api/v5/sign"), requestContent))
+                //using (var response = await request.PostAsync((Settings.BASE_URL_IMAGE + "/api/unimed/v5/sign"), requestContent))
+                using (var response = await request.PostAsync((Settings.BASE_URL_IMAGE + "/api/unimed/v5/sign"), requestContent))
                 {
                     bryResponse.StatusCode = response.StatusCode;
                     if (response.StatusCode == HttpStatusCode.OK)
@@ -888,7 +907,10 @@ namespace UCBS.BRY.Client
             #endregion
 
             #region Json Inicials
-            string jsonInicial = String.Format(@"
+            string jsonInicial = null;
+            if (configuracaoRubrica != null)
+            {
+                jsonInicial = String.Format(@"
                     {{
 	                    ""config"":[
                             {{
@@ -900,6 +922,8 @@ namespace UCBS.BRY.Client
 	                    ],
 	                    ""data"":""{0}""
                     }}", participante.imagem_iniciais.ToString(), configuracaoRubrica.paginas, configuracaoRubrica.x, configuracaoRubrica.y);
+            }
+            
             #endregion
 
             #region Json de resposta
@@ -939,7 +963,8 @@ namespace UCBS.BRY.Client
             requestContent.Add(new StringContent("password"), "authentication");
             requestContent.Add(new StringContent(participante.trail), "trail");
             requestContent.Add(new StringContent(jsonAssinatura), "signature");
-            requestContent.Add(new StringContent(jsonInicial), "initials");
+            if(!string.IsNullOrEmpty(jsonInicial))
+                requestContent.Add(new StringContent(jsonInicial), "initials");
             requestContent.Add(streamContentDocument, "document", "document.pdf");
             if(!(string.IsNullOrEmpty(documento.evento)))
             {

@@ -6,7 +6,7 @@ namespace UCBS.BRY.Client
         public static TOKEN Token;
         
 
-        public static bool IsProduct = true;
+        public static bool IsProduct = false;
 
         public static string BASE_URL
         {
@@ -15,7 +15,7 @@ namespace UCBS.BRY.Client
                 if (IsProduct)
                     return "https://cloud.bry.com.br";
                 else
-                    return "https://assinaturaeletronica.hom.bry.com.br";
+                    return "https://cloud-hom.bry.com.br";
             }
         }
 
