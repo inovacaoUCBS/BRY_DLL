@@ -247,7 +247,7 @@ namespace UCBS.BRY.Client
                         ""config"":[
                                         {{
                                             ""x"":111.59694993857701,
-			                                ""y"":204.4577901934419, 
+			                                ""y"":81.5923163931098, 
 			                                ""scale"":0.3,
 			                                ""pages"": ""13""
                                         }}
@@ -278,7 +278,7 @@ namespace UCBS.BRY.Client
                         ""config"":[
                                         {{
                                             ""x"":110.55541087964286,
-			                                ""y"":205.37418904323442, 
+			                                ""y"":81.5923163931098, 
 			                                ""scale"":0.3,
 			                                ""pages"": ""14""
                                         }},
@@ -291,6 +291,7 @@ namespace UCBS.BRY.Client
 	                                ],
 	                                ""data"":""{0}""
                     }}", medico.imagem_assinatura.ToString());
+                jsonInicial = jsonInicial.Replace("2-12", "2-13");
             }
 
             var requestContent = new MultipartFormDataContent();
@@ -508,7 +509,7 @@ namespace UCBS.BRY.Client
 	                [
 		                {{
  			                ""x"": 15.22043185764071,
-			                ""y"":206.09472656252703, 
+			                ""y"":81.592316393109, 
 			                ""scale"":0.3,
 			                ""pages"": ""13""
 		                }},
@@ -543,7 +544,7 @@ namespace UCBS.BRY.Client
 	                    [
 		                    {{
  			                    ""x"": 12.953559027779328,
-			                    ""y"": 205.37418904323442, 
+			                    ""y"": 81.5923163931098, 
 			                    ""scale"":0.3,
 			                    ""pages"": ""14""
 		                    }},
@@ -562,6 +563,7 @@ namespace UCBS.BRY.Client
 	                    ],
  	                    ""data"":""{0}""
                     }}", participante.imagem_assinatura);
+                    jsonInicial = jsonInicial.Replace("2-12", "2-13");
                 }
             }
 
@@ -613,6 +615,7 @@ namespace UCBS.BRY.Client
 	                    ],
  	                    ""data"":""{0}""
                     }}", participante.imagem_assinatura);
+                    jsonInicial = jsonInicial.Replace("2-12", "2-13");
                 }
             }
             #endregion
